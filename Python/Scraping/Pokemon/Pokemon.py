@@ -227,7 +227,7 @@ browser.quit()
 # csvとして保存
 df_pokemon = pd.DataFrame(Pokemon_Picture_book, columns=columns)
 df_pokemon = df_pokemon.set_index("図鑑番号")
-df_pokemon = df_pokemon[["名前", "別名", "世代", "タイプ1", "タイプ2", "特性1", "特性2", "夢特性", "H", "A", "B", "C", "D", "S", "合計値", "高さ", "重さ", "タマゴ1", "タマゴ2"]]
+columns = ["名前", "別名", "図鑑番号", "高さ", "重さ", "タイプ1", "タイプ2",  "H", "A", "B", "C", "D", "S", "合計値", "タマゴ1", "タマゴ2", "分類", "特性1", "特性2", "夢特性", "世代", "フォルム"]
 df_pokemon.to_csv("pokemon_picturebook.csv", encoding="cp932")
 
 df_char_list_ = pd.DataFrame(df_char_list)
