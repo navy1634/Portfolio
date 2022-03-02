@@ -1,9 +1,6 @@
-from pprint import pprint
-from datetime import date
 import pandas as pd
 import re
 from time import sleep
-import requests
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -38,6 +35,7 @@ def get_type(browser):
         type_list.append("-")
     return type_list
 
+# 整形用
 def data_split(data):
     return data.split("  ")[1].split("(")[0]
 
@@ -47,12 +45,14 @@ def del_friend(data):
             data.remove(d)
     return data
 
-# タマゴグループ
+# タマゴグループ、分類
 def get_egg(data):
     egg_data = data[32].replace("タマゴグループ ", "").split(" / ")
     if len(egg_data) == 1:
         egg_data.append("-")
+    egg_data.append(data[28].split()[1].replace("ポケモン", "").replace("の", "").replace("通常", "一般"))
     return egg_data
+
 
 def char_split(data):
     return data.split(" ")[0].replace("*", "")
@@ -69,6 +69,12 @@ def get_char(data):
     if data2 == "なし":
         data2 = "-"
     return data1 + [data2]
+
+# フォルム判定
+def get_folm(name):
+    if "メガ" in name:
+        return "メガ進化"
+    return name
 
 # 世代
 def get_gene(num):
@@ -90,9 +96,20 @@ def get_gene(num):
     else:
         return 8
 
+# データ取得用の関数
 def get_Pokemon(browser):
     pk_data_all = list()
     df_char_list = list()
+
+    # フォルムチェンジの確認
+    folm_list = dict()
+    WebDriverWait(browser, 20).until(EC.presence_of_element_located((By.CLASS_NAME, "select_list")))
+    pk_folm = browser.find_elements(By.CLASS_NAME, "select_list")
+    if len(pk_folm) > 1:
+        folm = pk_folm[1].find_elements(By.TAG_NAME, "a")
+        for f in folm:
+            folm_list[f.text] = f.get_attribute("href")
+
     # 名前・別名・タイプ
     WebDriverWait(browser, 20).until(EC.presence_of_element_located((By.ID, "base_anchor")))
     pk_data1 = browser.find_element(By.ID, "base_anchor")
@@ -124,20 +141,20 @@ def get_Pokemon(browser):
     pk_data_all.extend(char_list)
     pk_data_all.append(get_gene(nomal_data[2]))
 
-    return pk_data_all, df_char_list
+    return pk_data_all, df_char_list, folm_list
 
 
-options = webdriver.ChromeOptions()
-options.add_argument('--headless')
-
-columns = ["名前", "別名", "図鑑番号", "高さ", "重さ", "タイプ1", "タイプ2",  "H", "A", "B", "C", "D", "S", "合計値", "タマゴ1", "タマゴ2", "特性1", "特性2", "夢特性", "世代"]
+columns = ["名前", "別名", "図鑑番号", "高さ", "重さ", "タイプ1", "タイプ2",  "H", "A", "B", "C", "D", "S", "合計値", "タマゴ1", "タマゴ2", "分類", "特性1", "特性2", "夢特性", "世代", "フォルム"]
 Pokemon_Picture_book = list()
 df_char_list = list()
 error_list = list()
 
 # ブラウザの立ち上げ
+options = webdriver.ChromeOptions()
+options.add_argument('--headless')
 browser = webdriver.Chrome(ChromeDriverManager().install(), options=options)
 
+# ７世代まで
 for i in range(807):
     try:
         print(i+1, "匹目")
@@ -145,13 +162,32 @@ for i in range(807):
         url = f"https://yakkun.com/sm/zukan/n{i+1}"
         browser.get(url)
         sleep(1)
-        pk_data_all = get_Pokemon(browser)[0]
-        df_char_list.extend(get_Pokemon(browser)[1])
-        Pokemon_Picture_book.append(pk_data_all)
+        pokemon_data = get_Pokemon(browser)
+        pk_data_all = pokemon_data[0]
+        df_char_list.extend(pokemon_data[1])
+        folm_list = pokemon_data[2]
+
+        if folm_list == {}:
+            pk_data_all.append("-")
+        else:
+            pk_data_all.append("通常")
+
+        Pokemon_Picture_book.append(pk_data_all)    
+
+        for f_name, f_url in folm_list.items():
+            sleep(1)
+            browser.get(f_url)
+            sleep(1)
+            pokemon_data = get_Pokemon(browser)
+            pk_data_all = pokemon_data[0]
+            pk_data_all.append(get_folm(f_name))
+            Pokemon_Picture_book.append(pk_data_all)
+            df_char_list.extend(pokemon_data[1])
+
     except:
         error_list.append(i+1)
 
-
+# 8世代
 for i in range(807, 898):
     try:
         print(i+1, "匹目")
@@ -159,15 +195,36 @@ for i in range(807, 898):
         url = f"https://yakkun.com/swsh/zukan/n{i+1}"
         browser.get(url)
         sleep(1)
-        pk_data_all = get_Pokemon(browser)[0]
-        df_char_list.extend(get_Pokemon(browser)[1])
-        Pokemon_Picture_book.append(pk_data_all)
+        pokemon_data = get_Pokemon(browser)
+        pk_data_all = pokemon_data[0]
+        df_char_list.extend(pokemon_data[1])
+        folm_list = pokemon_data[2]
+
+        if folm_list == {}:
+            pk_data_all.append("-")
+        else:
+            pk_data_all.append("通常")
+
+        Pokemon_Picture_book.append(pk_data_all)    
+
+        for f_name, f_url in folm_list.items():
+            sleep(1)
+            browser.get(f_url)
+            sleep(1)
+            pokemon_data = get_Pokemon(browser)
+            pk_data_all = pokemon_data[0]
+            pk_data_all.append(get_folm(f_name))
+            Pokemon_Picture_book.append(pk_data_all)    
+            df_char_list.extend(pokemon_data[1])
+
     except:
         error_list.append(i+1)
 
+# ブラウザを閉じる
 browser.quit()
 
 
+# csvとして保存
 df_pokemon = pd.DataFrame(Pokemon_Picture_book, columns=columns)
 df_pokemon = df_pokemon.set_index("図鑑番号")
 df_pokemon = df_pokemon[["名前", "別名", "世代", "タイプ1", "タイプ2", "特性1", "特性2", "夢特性", "H", "A", "B", "C", "D", "S", "合計値", "高さ", "重さ", "タマゴ1", "タマゴ2"]]
@@ -178,6 +235,3 @@ df_char_list_ = df_char_list_.rename(columns={0: "特性", 1: "効果"})
 df_char_list_ = df_char_list_[(df_char_list_["特性"]!="◆")&(df_char_list_["特性"]!="なし")].sort_values("特性", ascending=True)
 df_char_all = df_char_list_[["特性", "効果"]][~df_char_list_[["特性", "効果"]].duplicated()].reset_index(drop=True)
 df_char_all.to_csv("pokemon_character.csv", encoding="cp932")
-
-print(error_list)
-st = input()
