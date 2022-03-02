@@ -235,3 +235,6 @@ df_char_list_ = df_char_list_.rename(columns={0: "特性", 1: "効果"})
 df_char_list_ = df_char_list_[(df_char_list_["特性"]!="◆")&(df_char_list_["特性"]!="なし")].sort_values("特性", ascending=True)
 df_char_all = df_char_list_[["特性", "効果"]][~df_char_list_[["特性", "効果"]].duplicated()].reset_index(drop=True)
 df_char_all.to_csv("pokemon_character.csv", encoding="cp932")
+
+
+print(error_list)
