@@ -1,7 +1,5 @@
-import pandas as pd
 from os import environ
 import MySQLdb
-from sqlalchemy import create_engine
 import wx
 import wx.lib.mixins.listctrl as listmix
 
@@ -18,7 +16,7 @@ class mainTable(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
 # GUIの大枠の作成
 class MainFrame(wx.Frame):
     def __init__(self):
-        super().__init__(parent=None, id=-1, title="ポケモン図鑑", size=(1000,900))
+        super().__init__(parent=None, id=-1, title="ポケモン図鑑", size=(1000,800))
 
         self.pk_panel = pk_Panel(self)
         self.pk_panel.SetBackgroundColour('#d8d8d8')
@@ -55,12 +53,13 @@ class pk_Panel(wx.Panel):
     # 取得したデータの反映
     def view_pk_list(self, event):
         self.get_pk_data()
+        self.use_list.DeleteAllItems()
         for line, cur in enumerate(self.cursor):
             cur = list(cur)
-            self.use_list.InsertStringItem(line, cur[0])
+            self.use_list.InsertItem(line, cur[0])
             for col in range(1, len(cur)):
                 data = str(cur[col])
-                self.use_list.SetStringItem(line,col,data)
+                self.use_list.SetItem(line,col,data)
     
     # SQｌ文の作成
     def get_pk_data(self):
@@ -73,7 +72,6 @@ class pk_Panel(wx.Panel):
         """
 
         sql = sql + self.create_sql()
-        print(sql)
         self.cursor.execute(sql)        
 
     # 検索条件の取得
@@ -128,7 +126,7 @@ class pk_Panel(wx.Panel):
 
         SUM_M = self.status_SUM_M.GetValue()
         if SUM_M:
-            sql += """ and pk_status.合計値 >= {}""".format(SUM_M)
+            sql += """ and pk_status.合計値 <= {}""".format(SUM_M)
         H_M = self.status_H_M.GetValue()
         if H_M:
             sql += """ and pk_status.H <= {}""".format(H_M)
