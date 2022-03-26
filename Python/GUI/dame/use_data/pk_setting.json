@@ -1,0 +1,13 @@
+{
+    "search": {"A": "A"},
+
+    "picture": {"A": "A"},
+    
+    "move": {"A": "A"},
+    
+    "calc": {"B": "B"},
+    
+    "setting": {"C": "C"}, 
+
+    "save": {"C": "C"}
+}
