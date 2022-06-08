@@ -323,8 +323,8 @@ class pk_Panel(wx.Panel):
     # リセット
     def reset_button(self, event):
         self.name_button.SetValue("名前")
-        self.type1_button.SetValue("タイプ1")
-        self.type2_button.SetValue("タイプ2")
+        self.type1_button.SetValue("タイプ")
+        self.type2_button.SetValue("タイプ")
         self.abi_button.SetValue("特性1")
         self.hide_abi_button.SetValue("特性2")
         self.gene_button.SetValue("世代")

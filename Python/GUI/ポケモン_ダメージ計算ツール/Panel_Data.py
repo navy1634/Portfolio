@@ -66,16 +66,22 @@ class pk_data_Panel(wx.Panel):
         """
         取得技一覧の反映
         """
-        pk_move = self.use_move_data[self.name]["Move"]
-        self.move_list.DeleteAllItems()
-        use_move = list(pk_move.keys())
-        use_move.reverse()
-        for move in use_move:
-            df_move = self.df_move_all[self.df_move_all["名前"]==move.replace("*", "")]
-            self.move_list.InsertItem(0, move.replace("*", ""))
-            self.move_list.SetItem(0,1, df_move["タイプ"].tolist()[0])
-            self.move_list.SetItem(0,2, pk_move[move])
-            self.move_list.SetItem(0,3, df_move["効果"].tolist()[0])
+        try:
+            pk_move = self.use_move_data[self.name]["Move"]
+            self.move_list.DeleteAllItems()
+            use_move = list(pk_move.keys())
+            use_move.reverse()
+            for move in use_move:
+                df_move = self.df_move_all[self.df_move_all["名前"]==move.replace("*", "")]
+                self.move_list.InsertItem(0, move.replace("*", ""))
+                self.move_list.SetItem(0,1, df_move["タイプ"].tolist()[0])
+                self.move_list.SetItem(0,2, pk_move[move])
+                self.move_list.SetItem(0,3, df_move["効果"].tolist()[0])
+        except:
+            for line, cur in enumerate(self.cursor):
+                cur = list(cur)
+                self.use_list.InsertItem(line, "Error")
+
         return None
 
     def view_pk_list(self):
