@@ -14,14 +14,13 @@ class pk_party_Panel(wx.Panel):
         self.set_sc_button()
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
-        self.set_screen(self=self, panel=pk_view_party_Panel, sizer=self.sizer, rbox=self.rbox)
+        self.set_screen(panel=pk_view_party_Panel, sizer=self.sizer, rbox=self.rbox)
 
 
     def set_sc_button(self):
         self.rbox = wx.RadioBox(self, -1, "ページ構成", choices=['確認', '編成'])
-        self.rbox.Bind(wx.EVT_RADIOBOX, self.check)
+        # self.rbox.Bind(wx.EVT_RADIOBOX, self.check)
 
-    @staticmethod
     def set_screen(self, panel, sizer: wx.BoxSizer, rbox: wx.RadioBox):
         sizer.Clear(False)
         self.DestroyChildren()
@@ -31,18 +30,6 @@ class pk_party_Panel(wx.Panel):
         sizer.Add(panel(self), flag=wx.ALIGN_CENTER)
         sizer.Layout()
 
-    def check(self, event):
-        num = self.rbox.GetSelection()
-
-        with ThreadPoolExecutor(max_workers=4) as exec:
-            if num == 0:
-                exec.submit(self.set_screen, pk_view_party_Panel, self.sizer, self.rbox)
-                self.rbox.SetSelection(0)
-                print(0)
-            else:
-                exec.submit(self.set_screen, pk_set_party_Panel, self.sizer, self.rbox)
-                self.rbox.SetSelection(1)
-                print(1)
 
 
 class pk_view_party_Panel(wx.Panel):

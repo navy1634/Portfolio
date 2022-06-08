@@ -30,21 +30,22 @@ class TabNote(wx.Notebook):
         self.AddPage(self.move_Panel, "技一覧")
         self.AddPage(self.calc_Panel, "ダメージ計算")
         self.AddPage(self.party_Panel, "パーティ編成")
-        self.AddPage(self.setting_Panel, "設定")
+        # self.AddPage(self.setting_Panel, "設定")
 
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.set_values)
     
     def get_use_data(self):
-        self.conn = sqlite3.connect("py_db.db")
+        self.conn = sqlite3.connect("./Python/GUI/ポケモン_ダメージ計算ツール/use_data/py_db.db")
         self.cursor = self.conn.cursor()
-        with open("use_data\PK_Move.json", encoding="UTF-8") as f:
+        with open("./Python/GUI/ポケモン_ダメージ計算ツール/use_data/PK_Move.json", encoding="UTF-8") as f:
             text = f.read()
             self.use_move_data = json.loads(text)
             f.close()
+
         sql2 = """
         Select * 
         From pk_move
-        """.format(name=self)
+        """
         self.df_move_all = pd.read_sql_query(sql=sql2, con=self.conn)
 
     def set_values(self, event):

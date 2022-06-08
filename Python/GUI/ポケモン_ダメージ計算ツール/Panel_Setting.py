@@ -5,7 +5,7 @@ import pandas as pd
 class pk_setting_Panel(wx.Panel):
     def __init__(self, parent):
         super().__init__(parent, -1)
-        with open("use_data\pk_setting.json", encoding="CP932") as js:
+        with open("./Python/GUI/ポケモン_ダメージ計算ツール/use_data/pk_setting.json", encoding="CP932") as js:
             setting = js.read()
             self.setting_data = json.loads(setting)
             js.close()
