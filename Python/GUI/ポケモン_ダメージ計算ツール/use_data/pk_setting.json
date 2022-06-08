@@ -1,11 +1,16 @@
 {
-    "search": {"A": "A"},
+    "search": {"A": "A",
+            "size": "(70, 20)"},
 
-    "picture": {"A": "A"},
+    "picture": {"A": "A", 
+        "size":"(70, 20)", 
+        "": ""},
     
     "move": {"A": "A"},
     
     "calc": {"B": "B"},
+
+    "party": {"B": "C"},
     
     "setting": {"C": "C"}, 
 
