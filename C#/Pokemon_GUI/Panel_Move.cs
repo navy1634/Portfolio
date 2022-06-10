@@ -3,6 +3,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Data.SQLite;
+using System.Text.RegularExpressions;
 
 public partial class Move_Panel : Panel {
     public Move_Panel() {
@@ -16,6 +17,7 @@ public partial class Move_Panel : Panel {
 
     #nullable disable
     private void Search_SQL(object sender, EventArgs e) {
+        pk_move_table.Items.Clear();
         using (var conn = new SQLiteConnection("Data Source=./GUI/use_data/py_db.db")){
             using (var command = conn.CreateCommand()) {
                 // 接続
@@ -43,6 +45,7 @@ public partial class Move_Panel : Panel {
             }
         }
     }
+    
     private void get_Start_SQL() {
         using (var conn = new SQLiteConnection("Data Source=./GUI/use_data/py_db.db")){
             using (var command = conn.CreateCommand()) {
@@ -74,21 +77,24 @@ public partial class Move_Panel : Panel {
 
     public string Create_Query() {
         string query = @"Select * From pk_move";
-        if (move_name.Text != "技名") {
-            query += String.Format($" and pk_move.技名 Like '%{move_name.Text}%'");
+        if (name_button.Text != "技名") {
+            query += $" and pk_move.技名 Like '%{name_button.Text}%'";
         }
-        if (move_type.Text != "タイプ") {
-            query += String.Format($" and pk_move.タイプ == '{move_type.Text}'");
+        if (type_button.Text != "タイプ") {
+            query += $" and pk_move.タイプ = '{type_button.Text}'";
         }
-        if (move_class.Text != "分類") {
-            query += String.Format($" and pk_move.分類 == '{move_class.Text}'");
+        if (class_button.Text != "分類") {
+            query += $" and pk_move.分類 = '{class_button.Text}'";
         }
-        if (move_way.Text != "攻撃方法") {
-            query += String.Format($" and pk_move.攻撃方法 == '{move_way.Text}'");
+        if (move_way_button.Text != "攻撃方法") {
+            query += $" and pk_move.攻撃方法 = '{move_way_button.Text}'";
         }
-        if (move_target.Text != "対象") {
-            query += String.Format($" and pk_move.攻撃対象 == '{move_target.Text}'");
+        if (move_targ_button.Text != "攻撃対象") {
+            query += $" and pk_move.攻撃対象 = '{move_targ_button.Text}'";
         }
+        var re = new Regex(" and");
+        query = re.Replace(query, " Where", 1);
+        Console.WriteLine(query);
         return query;
     }
 
@@ -382,15 +388,15 @@ public partial class Move_Panel : Panel {
 
     public void set_move_damage_button () {
         name_button.Items.Add("技名");
-        name_button.Click += Search_SQL;
+        name_button.TextChanged += Search_SQL;
         type_button.Items.AddRange(type_name_list);
-        type_button.Click += Search_SQL;
+        type_button.TextChanged += Search_SQL;
         class_button.Items.AddRange(move_class_list);
-        class_button.Click += Search_SQL;
+        class_button.TextChanged += Search_SQL;
         move_way_button.Items.AddRange(new string[] {"攻撃方法", "接触", "非接触"});
-        move_way_button.Click += Search_SQL;
-        move_targ_button.Items.AddRange(type_name_list);
-        move_targ_button.Click += Search_SQL;
+        move_way_button.TextChanged += Search_SQL;
+        move_targ_button.Items.AddRange(move_target_list);
+        move_targ_button.TextChanged += Search_SQL;
 
         this.Controls.AddRange(new Control[] {
             name_label,
