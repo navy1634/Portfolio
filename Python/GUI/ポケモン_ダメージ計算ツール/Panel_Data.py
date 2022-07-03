@@ -40,13 +40,13 @@ class pk_data_Panel(wx.Panel):
         self.size = parent.size
         self.conn = parent.conn
         self.df_move_all = parent.df_move_all
-        self.use_move_data  = parent.use_move_data
+        self.use_move_json  = parent.use_move_data
 
         # テーブルの作成
         self.df_type = pd.DataFrame(comp_list, index=type_name_list, columns=type_name_list)
         self.move_list = mainTable(self, size=(370, 470))
         self.type_list = mainTable(self, size=(410, 200))
-        self.get_target_data()
+        self.get_pk_name_list()
 
         # パネル内のレイアウト
         panel_layout = wx.BoxSizer(wx.VERTICAL)
@@ -62,29 +62,23 @@ class pk_data_Panel(wx.Panel):
             self.type_list.InsertColumn(col, v)
 
 
-    def set_move_list(self) -> None:
+    def view_move_list(self) -> None:
         """
         取得技一覧の反映
         """
-        try:
-            pk_move = self.use_move_data[self.name]["Move"]
-            self.move_list.DeleteAllItems()
-            use_move = list(pk_move.keys())
-            use_move.reverse()
-            for move in use_move:
-                df_move = self.df_move_all[self.df_move_all["名前"]==move.replace("*", "")]
-                self.move_list.InsertItem(0, move.replace("*", ""))
-                self.move_list.SetItem(0,1, df_move["タイプ"].tolist()[0])
-                self.move_list.SetItem(0,2, pk_move[move])
-                self.move_list.SetItem(0,3, df_move["効果"].tolist()[0])
-        except:
-            for line, cur in enumerate(self.cursor):
-                cur = list(cur)
-                self.use_list.InsertItem(line, "Error")
-
+        pk_move = self.use_move_json[self.name]["Move"]
+        self.move_list.DeleteAllItems()
+        use_move = list(pk_move.keys())
+        use_move.reverse()
+        for move in use_move:
+            df_move = self.df_move_all[self.df_move_all["名前"]==move.replace("*", "")]
+            self.move_list.InsertItem(0, move.replace("*", ""))
+            self.move_list.SetItem(0,1, df_move["タイプ"].tolist()[0])
+            self.move_list.SetItem(0,2, pk_move[move])
+            self.move_list.SetItem(0,3, df_move["効果"].tolist()[0])
         return None
 
-    def view_pk_list(self):
+    def view_type_list(self):
         """
         取得したデータの反映
         """
@@ -168,7 +162,7 @@ class pk_data_Panel(wx.Panel):
         """
         try:
             toggle = self.series_button.GetValue()
-            use_move_list_my = self.use_move_data[self.name]["Move"]
+            use_move_list_my = self.use_move_json[self.name]["Move"]
             if toggle == True:
                 use_move_list = [move for move,val in use_move_list_my.items()  if val !="過去限定"]
             else:
@@ -181,45 +175,80 @@ class pk_data_Panel(wx.Panel):
         """
         検索対象のデータの反映
         """
-        # 名前の取得
         self.name = self.name_box.GetValue()
-        pk_data = self.df_pk[self.df_pk["名前"]==self.name]
+        sql = self.Create_SQL(self.name)
+        self.pk_data = pd.read_sql_query(sql=sql, con=self.conn)
 
-        folm = pk_data["フォルム"].tolist()
+        folm = self.pk_data["フォルム"].tolist()
         self.folm_box.Clear()
         self.folm_box.SetValue(folm[0])
         for f in folm:
             self.folm_box.Append(f)
         
-        self.type1 = pk_data["タイプ1"].tolist()[0]
-        self.type2 = pk_data["タイプ2"].tolist()[0]
+        self.type1 = self.pk_data["タイプ1"].tolist()[0]
+        self.type2 = self.pk_data["タイプ2"].tolist()[0]
         self.type1_box.SetValue(self.type1)
         self.type2_box.SetValue(self.type2)
 
-        abi1 = pk_data["特性1"].tolist()[0]
-        abi2 = pk_data["特性2"].tolist()[0]
-        abi3 = pk_data["夢特性"].tolist()[0]
+        abi1 = self.pk_data["特性1"].tolist()[0]
+        abi2 = self.pk_data["特性2"].tolist()[0]
+        abi3 = self.pk_data["夢特性"].tolist()[0]
         self.abi1_box.SetValue(abi1)
         self.abi2_box.SetValue(abi2)
         self.abi_hide_box.SetValue(abi3)
 
         # 種族値の取得
-        self.status_sum.SetValue(str(pk_data["合計値"].tolist()[0]))
-        self.status_H.SetValue(str(pk_data["H"].tolist()[0]))
-        self.status_A.SetValue(str(pk_data["A"].tolist()[0]))
-        self.status_B.SetValue(str(pk_data["B"].tolist()[0]))
-        self.status_C.SetValue(str(pk_data["C"].tolist()[0]))
-        self.status_D.SetValue(str(pk_data["D"].tolist()[0]))
-        self.status_S.SetValue(str(pk_data["S"].tolist()[0]))
+        self.status_sum.SetValue(str(self.pk_data["合計値"].tolist()[0]))
+        self.status_H.SetValue(str(self.pk_data["H"].tolist()[0]))
+        self.status_A.SetValue(str(self.pk_data["A"].tolist()[0]))
+        self.status_B.SetValue(str(self.pk_data["B"].tolist()[0]))
+        self.status_C.SetValue(str(self.pk_data["C"].tolist()[0]))
+        self.status_D.SetValue(str(self.pk_data["D"].tolist()[0]))
+        self.status_S.SetValue(str(self.pk_data["S"].tolist()[0]))
 
-        gene = pk_data["世代"].tolist()[0]
-        class_ = pk_data["分類"].tolist()[0]
+        gene = self.pk_data["世代"].tolist()[0]
+        class_ = self.pk_data["分類"].tolist()[0]
         self.gene_box.SetValue(str(gene))
         self.class_box.SetValue(class_)
-        self.view_pk_list()
-        self.set_move_list()
+        self.view_type_list()
+        self.view_move_list()
 
-    def get_target_data(self):
+    def set_folm_valuses(self, event):
+        """
+        検索対象のデータの反映
+        """
+        folm = self.folm_box.GetValue()
+        pk_folm_data = self.pk_data[self.pk_data["フォルム"]==folm]
+        
+        self.type1 = pk_folm_data["タイプ1"].tolist()[0]
+        self.type2 = pk_folm_data["タイプ2"].tolist()[0]
+        self.type1_box.SetValue(self.type1)
+        self.type2_box.SetValue(self.type2)
+
+        abi1 = pk_folm_data["特性1"].tolist()[0]
+        abi2 = pk_folm_data["特性2"].tolist()[0]
+        abi3 = pk_folm_data["夢特性"].tolist()[0]
+        self.abi1_box.SetValue(abi1)
+        self.abi2_box.SetValue(abi2)
+        self.abi_hide_box.SetValue(abi3)
+
+        # 種族値の取得
+        self.status_sum.SetValue(str(pk_folm_data["合計値"].tolist()[0]))
+        self.status_H.SetValue(str(pk_folm_data["H"].tolist()[0]))
+        self.status_A.SetValue(str(pk_folm_data["A"].tolist()[0]))
+        self.status_B.SetValue(str(pk_folm_data["B"].tolist()[0]))
+        self.status_C.SetValue(str(pk_folm_data["C"].tolist()[0]))
+        self.status_D.SetValue(str(pk_folm_data["D"].tolist()[0]))
+        self.status_S.SetValue(str(pk_folm_data["S"].tolist()[0]))
+
+        gene = pk_folm_data["世代"].tolist()[0]
+        class_ = pk_folm_data["分類"].tolist()[0]
+        self.gene_box.SetValue(str(gene))
+        self.class_box.SetValue(class_)
+        self.view_type_list()
+        self.view_move_list()
+
+    def Create_SQL(self, name):
         """
         ポケモン図鑑データの準備
         """
@@ -228,11 +257,19 @@ class pk_data_Panel(wx.Panel):
             From pk_status, pk_nomal, pk_fight
             Where pk_status.名前 = pk_nomal.名前 and pk_status.フォルム = pk_nomal.フォルム and pk_status.名前 = pk_nomal.名前
             and pk_status.名前 = pk_fight.名前 and pk_status.フォルム = pk_fight.フォルム and pk_status.名前 = pk_fight.名前
-        '''
-        self.df_pk = pd.read_sql_query(sql=sql, con=self.conn)
-        self.pk_name_list = list(self.df_pk["名前"].unique())
-        self.pk_name_list.sort()
+            and pk_status.名前 = '{name}'
+        '''.format(name=name)
+        return sql
 
+    def get_pk_name_list(self):
+        sql = '''
+            Select pk_nomal.名前
+            From pk_nomal
+        '''
+        self.pk_name_list = pd.read_sql_query(sql=sql, con=self.conn)
+        self.pk_name_list = self.pk_name_list["名前"].values.tolist()
+
+    # レイアウト
     def set_layout(self):
         """
         パーツ全体のレイアウト
@@ -330,7 +367,7 @@ class pk_data_Panel(wx.Panel):
         self.status_D = wx.TextCtrl(self, -1, "D", size=self.size)
         self.status_S = wx.TextCtrl(self, -1, "S", size=self.size)
         self.folm_box = wx.ComboBox(self, -1, "フォルム", size=self.size)
-        self.folm_box.Bind(wx.EVT_COMBOBOX, self.set_valuses)
+        self.folm_box.Bind(wx.EVT_COMBOBOX, self.set_folm_valuses)
 
         layout = wx.BoxSizer(wx.VERTICAL)
         layout.Add(self.folm_box)
