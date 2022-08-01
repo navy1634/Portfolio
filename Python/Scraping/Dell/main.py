@@ -1,5 +1,3 @@
-from datetime import date
-import pandas as pd
 from Parser import Dell_Perser
 from Dell_ProdData_Parser import Dell_Index_Perser
 
